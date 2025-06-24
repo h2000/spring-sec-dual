@@ -1,0 +1,49 @@
+# Test Configuration
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  
+  h2:
+    console:
+      enabled: false
+  
+  security:
+    oauth2:
+      client:
+        registration:
+          test-provider:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            scope:
+              - openid
+              - profile
+              - email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: Test Provider
+        
+        provider:
+          test-provider:
+            authorization-uri: http://localhost:8080/auth/realms/test/protocol/openid-connect/auth
+            token-uri: http://localhost:8080/auth/realms/test/protocol/openid-connect/token
+            user-info-uri: http://localhost:8080/auth/realms/test/protocol/openid-connect/userinfo
+            jwk-set-uri: http://localhost:8080/auth/realms/test/protocol/openid-connect/certs
+            user-name-attribute: preferred_username
+
+logging:
+  level:
+    com.example.security: DEBUG
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN

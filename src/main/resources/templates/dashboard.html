@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ihre Anwendung</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .auth-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .auth-badge.header {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+        
+        .auth-badge.oauth2 {
+            background: #f0f9e7;
+            color: #2d5a27;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e1e5e9;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .info-item {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .info-item strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .authorities-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .authority-badge {
+            background: #007bff;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .api-test {
+            margin-top: 2rem;
+        }
+        
+        .api-test button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .api-test button:hover {
+            background: #218838;
+        }
+        
+        .api-response {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Dashboard</h2>
+        <div class="user-info">
+            <span th:text="${username}">Benutzername</span>
+            <span th:class="${'auth-badge ' + (#strings.toLowerCase(authMethod).contains('header') ? 'header' : 'oauth2')}" 
+                  th:text="${authMethod}">Auth Method</span>
+            <form method="post" action="/logout" style="margin: 0;">
+                <button type="submit" class="logout-btn">Abmelden</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                Benutzerinformationen
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Benutzername:</strong>
+                        <span th:text="${username}">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Authentifizierungsmethode:</strong>
+                        <span th:text="${authMethod}">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Berechtigungen:</strong>
+                        <div class="authorities-list">
+                            <span th:each="authority : ${authorities}" 
+                                  th:text="${authority.authority}" 
+                                  class="authority-badge">ROLE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                Detaillierte Profilinformationen
+            </div>
+            <div class="card-body">
+                <button onclick="loadProfile()">Profil laden</button>
+                <button onclick="checkAuthStatus()">Auth-Status prüfen</button>
+                <div id="profileData" class="api-response" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                API Tests
+            </div>
+            <div class="card-body">
+                <div class="api-test">
+                    <button onclick="testApi('/api/user/info')">User Info API</button>
+                    <button onclick="testApi('/api/protected')">Protected API</button>
+                    <button onclick="testApi('/api/admin')" sec:authorize="hasRole('ADMIN')">Admin API</button>
+                    <div id="apiResponse" class="api-response" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Section -->
+        <div class="card" sec:authorize="hasRole('ADMIN')">
+            <div class="card-header">
+                Admin-Bereich
+            </div>
+            <div class="card-body">
+                <p>🔧 Hier könnten Admin-spezifische Funktionen stehen.</p>
+                <button onclick="alert('Admin-Funktion würde hier ausgeführt')" class="logout-btn" style="background: #ffc107; color: #212529;">
+                    Admin-Aktion
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function loadProfile() {
+            fetch('/profile')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('profileData').style.display = 'block';
+                    document.getElementById('profileData').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    document.getElementById('profileData').style.display = 'block';
+                    document.getElementById('profileData').textContent = 'Fehler: ' + error;
+                });
+        }
+        
+        function checkAuthStatus() {
+            fetch('/auth/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('profileData').style.display = 'block';
+                    document.getElementById('profileData').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    document.getElementById('profileData').style.display = 'block';
+                    document.getElementById('profileData').textContent = 'Fehler: ' + error;
+                });
+        }
+        
+        function testApi(endpoint) {
+            fetch(endpoint)
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                })
+                .then(data => {
+                    document.getElementById('apiResponse').style.display = 'block';
+                    document.getElementById('apiResponse').textContent = `${endpoint}:\n${data}`;
+                })
+                .catch(error => {
+                    document.getElementById('apiResponse').style.display = 'block';
+                    document.getElementById('apiResponse').textContent = `${endpoint}:\nFehler: ${error.message}`;
+                });
+        }
+        
+        // Automatische Auth-Status Überwachung (optional)
+        setInterval(() => {
+            fetch('/auth/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.authenticated) {
+                        alert('Ihre Sitzung ist abgelaufen. Sie werden zur Anmeldung weitergeleitet.');
+                        window.location.href = '/login';
+                    }
+                })
+                .catch(error => console.log('Auth check failed', error));
+        }, 60000); // Prüfe alle 60 Sekunden
+    </script>
+</body>
+</html>
