@@ -25,7 +25,7 @@ public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    @GetMapping("/login")
+    @GetMapping("/login2")
     public String login(HttpServletRequest request, Model model) {
         // Prüfe ob Header-Authentication möglich ist
         String headerUser = request.getHeader("X_AUTH_USER");
@@ -39,7 +39,7 @@ public class AuthController {
         return "login";
     }
 
-    @GetMapping("/dashboard")
+    @GetMapping("/dashboard2")
     public String dashboard(Authentication authentication, Model model) {
         String authMethod = determineAuthMethod(authentication);
         String username = authentication.getName();

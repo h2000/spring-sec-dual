@@ -1,1 +1,11 @@
 /target/
+
+# The following files are generated/updated by vaadin-maven-plugin
+node_modules/
+frontend/generated/
+pnpmfile.js
+vite.generated.ts
+tsconfig.json
+types.d.ts
+vite.config.ts
+src/main/bundles/dev.bundle

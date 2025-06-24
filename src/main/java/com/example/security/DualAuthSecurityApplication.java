@@ -1,5 +1,9 @@
 package com.example.security;
 
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.server.PWA;
+import com.vaadin.flow.spring.annotation.EnableVaadin;
+import com.vaadin.flow.theme.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,9 +11,20 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-public class DualAuthSecurityApplication {
+@Theme(value = "dual-auth-security")
+@PWA(
+    name = "Dual Authentication Security",
+    shortName = "DualAuth",
+    description = "Spring Boot Security with Header and OAuth2 Authentication"
+)
+@ComponentScan(basePackages = "com.example.security")
+@EnableVaadin
+@Import({VaadinSecurityConfig.class, SecurityConfig.class})
+public class DualAuthSecurityApplication implements AppShellConfigurator {
 
     private static final Logger logger = LoggerFactory.getLogger(DualAuthSecurityApplication.class);
 

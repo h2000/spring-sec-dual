@@ -1,7 +1,6 @@
 
 package com.example.security;
 
-import com.example.security.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +21,6 @@ import java.io.IOException;
 
 // Custom Filter für Header-basierte Authentifizierung
 @Component
-
 public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(HeaderAuthenticationFilter.class);

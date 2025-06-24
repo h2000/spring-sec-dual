@@ -1,0 +1,14 @@
+{
+  "lumoImports": [
+    "color",
+    "typography",
+    "utility",
+    "spacing",
+    "badge"
+  ],
+  "documentCssImport": [
+    {
+      "include": "view/**/*.css"
+    }
+  ]
+}
