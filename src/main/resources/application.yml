@@ -15,9 +15,11 @@ spring:
             issuer-uri: http://localhost:4444/realms/spring-app-realm
             user-name-attribute: preferred_username
   websecurity:
+    # use custom security debug filter
     debug: true
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    # enable details logging for spring security
+    org.springframework.security: TRACE
     com.example.security: DEBUG
