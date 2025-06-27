@@ -1,11 +1,50 @@
-version: '3.8'
-
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: keycloak-dev
+    ports:
+      - "4444:8080"
+    environment:
+      # Admin credentials
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+
+      # Development mode settings
+      - KC_HTTP_ENABLED=true
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+
+      # Logging for development
+      - KC_LOG_LEVEL=INFO
+      - KC_LOG_CONSOLE_COLOR=true
+
+      # H2 Database (default in dev mode - no additional config needed)
+      - KC_DB=dev-file
+
+    command: start-dev --import-realm
+    volumes:
+      - ./docker/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - keycloak_data:/opt/keycloak/data
+
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   nginx:
     image: nginx:alpine
     container_name: nginx-proxy
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - keycloak
     network_mode: host
+
+volumes:
+  keycloak_data:

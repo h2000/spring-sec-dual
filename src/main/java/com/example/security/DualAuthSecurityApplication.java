@@ -11,7 +11,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
@@ -21,9 +20,8 @@ import org.springframework.context.annotation.Import;
     shortName = "DualAuth",
     description = "Spring Boot Security with Header and OAuth2 Authentication"
 )
-@ComponentScan(basePackages = "com.example.security")
 @EnableVaadin
-@Import({VaadinSecurityConfig.class, SecurityConfig.class})
+@Import({VaadinSecurityConfig.class})
 public class DualAuthSecurityApplication implements AppShellConfigurator {
 
     private static final Logger logger = LoggerFactory.getLogger(DualAuthSecurityApplication.class);

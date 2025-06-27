@@ -1,16 +1,16 @@
 package com.example.security.views;
 
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.security.AuthenticationContext;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 
 @Route("login")
 @AnonymousAllowed
@@ -42,15 +42,37 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         Div oauthSection = new Div();
         oauthSection.getStyle().set("margin-bottom", "1rem");
 
-        Anchor oauthLogin = new Anchor("/oauth2/authorization/google", "Mit Google anmelden");
-        oauthLogin.getStyle()
-                .set("display", "inline-block")
-                .set("background", "#4285f4")
+        // Keycloak Login Button
+        Button keycloakLoginButton = new Button("Login with Keycloak");
+        keycloakLoginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        keycloakLoginButton.getStyle()
+                .set("background", "#4c76a6")
                 .set("color", "white")
                 .set("padding", "0.75rem 1.5rem")
-                .set("text-decoration", "none")
                 .set("border-radius", "4px")
-                .set("font-weight", "500");
+                .set("font-weight", "500")
+                .set("margin-bottom", "0.5rem")
+                .set("width", "100%");
+        
+        keycloakLoginButton.addClickListener(e -> {
+            UI.getCurrent().getPage().setLocation("/oauth2/authorization/keycloak");
+        });
+
+        // Azure Login Button
+        Button azureLoginButton = new Button("Login with Azure AD");
+        azureLoginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        azureLoginButton.getStyle()
+                .set("background", "#0078d4")
+                .set("color", "white")
+                .set("padding", "0.75rem 1.5rem")
+                .set("border-radius", "4px")
+                .set("font-weight", "500")
+                .set("margin", "0.25rem 0")
+                .set("width", "100%");
+        
+        azureLoginButton.addClickListener(e -> {
+            UI.getCurrent().getPage().setLocation("/oauth2/authorization/azure");
+        });
 
         Div headerAuthInfo = new Div();
         headerAuthInfo.getStyle()
@@ -63,7 +85,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         headerAuthInfo.add("Header-Authentifizierung ist automatisch aktiv, wenn entsprechende Header gesetzt sind.");
 
-        oauthSection.add(oauthLogin);
+        oauthSection.add(keycloakLoginButton, azureLoginButton);
         loginOptions.add(loginTitle, oauthSection, headerAuthInfo);
 
         add(title, loginOptions);
@@ -76,7 +98,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         // Check if user is already authenticated via header
-
         if (authenticationContext.isAuthenticated()) {
             event.forwardTo("dashboard");
         }

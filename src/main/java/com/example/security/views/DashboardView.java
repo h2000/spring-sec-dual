@@ -1,27 +1,24 @@
 package com.example.security.views;
 
+import com.example.security.CustomOAuth2User;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Route("dashboard")
@@ -40,170 +37,182 @@ public class DashboardView extends VerticalLayout {
         createHeader();
         createUserInfo();
         createActions();
-        
-        getStyle()
-            .set("background", "#f8fafc")
-            .set("min-height", "100vh");
     }
 
     private void createHeader() {
-        HorizontalLayout header = new HorizontalLayout();
-        header.setWidthFull();
-        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
-        header.setAlignItems(Alignment.CENTER);
-        header.getStyle()
-            .set("background", "white")
-            .set("padding", "1rem 2rem")
-            .set("border-radius", "8px")
-            .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)")
-            .set("margin-bottom", "2rem");
-
         H1 title = new H1("Dashboard");
-        title.getStyle().set("color", "#1f2937").set("margin", "0");
-
-        Button logoutButton = new Button("Abmelden", new Icon(VaadinIcon.SIGN_OUT));
-        logoutButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        logoutButton.addClickListener(e -> logout());
-
-        header.add(title, logoutButton);
-        add(header);
+        title.getStyle().set("color", "#2563eb").set("margin-bottom", "0");
+        
+        Paragraph subtitle = new Paragraph("Willkommen in der Dual Authentication Security Anwendung");
+        subtitle.getStyle().set("color", "#6b7280").set("margin-top", "0");
+        
+        add(title, subtitle);
     }
 
     private void createUserInfo() {
-        authenticationContext.getAuthenticatedUser(User.class).ifPresent(auth -> {
-            VerticalLayout userCard = new VerticalLayout();
-            userCard.getStyle()
+        // Get Authentication from SecurityContext instead of AuthenticationContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            add(new Paragraph("Nicht authentifiziert"));
+            return;
+        }
+
+        Div userCard = new Div();
+        userCard.getStyle()
                 .set("background", "white")
-                .set("padding", "2rem")
+                .set("padding", "1.5rem")
                 .set("border-radius", "8px")
                 .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)")
-                .set("margin-bottom", "2rem");
+                .set("margin-bottom", "1rem");
 
-            H2 welcomeTitle = new H2("Willkommen!");
-            welcomeTitle.getStyle().set("color", "#1f2937").set("margin-top", "0");
+        H2 userTitle = new H2("Benutzer-Informationen");
+        userTitle.getStyle().set("margin-top", "0").set("color", "#374151");
 
-            // User information
-            Div userInfo = new Div();
-            userInfo.getStyle().set("margin-bottom", "1rem");
+        // Username
+        HorizontalLayout usernameLayout = new HorizontalLayout();
+        usernameLayout.setSpacing(true);
+        usernameLayout.add(
+            new Span("Benutzername: "),
+            createInfoSpan(authentication.getName())
+        );
 
-            String username = auth.getUsername();
-            // String authMethod = getAuthenticationMethod(auth);
-            
-            Paragraph userPara = new Paragraph("Benutzer: " + username);
-            userPara.getStyle().set("font-weight", "bold").set("margin", "0.5rem 0");
-            
-            Paragraph authPara = new Paragraph("Authentifizierungsmethode: " ); // TODO + authMethod);
-            // authPara.getStyle().set("color", "#6b7280").set("margin", "0.5rem 0");
+        // Authentication type and additional info based on principal type
+        Object principal = authentication.getPrincipal();
+        String authType;
+        String email = null;
+        String fullName = null;
 
-            // Roles
-            String roles = auth.getAuthorities().stream()
+        if (principal instanceof CustomOAuth2User customOAuth2User) {
+            authType = "OAuth2/OIDC (Custom)";
+            email = customOAuth2User.getEmail();
+            fullName = customOAuth2User.getFullName();
+        } else if (principal instanceof OidcUser oidcUser) {
+            authType = "OAuth2/OIDC (OIDC)";
+            email = oidcUser.getAttribute("email");
+            String firstName = oidcUser.getAttribute("given_name");
+            String lastName = oidcUser.getAttribute("family_name");
+            if (firstName != null || lastName != null) {
+                fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+                fullName = fullName.trim();
+            }
+        } else if (principal instanceof OAuth2User oauth2User) {
+            authType = "OAuth2/OIDC (OAuth2)";
+            email = oauth2User.getAttribute("email");
+            String name = oauth2User.getAttribute("name");
+            if (name != null) {
+                fullName = name;
+            }
+        } else {
+            authType = "Header Authentication";
+        }
+
+        HorizontalLayout authTypeLayout = new HorizontalLayout();
+        authTypeLayout.setSpacing(true);
+        authTypeLayout.add(
+            new Span("Authentifizierung: "),
+            createInfoSpan(authType)
+        );
+
+        // Roles
+        HorizontalLayout rolesLayout = new HorizontalLayout();
+        rolesLayout.setSpacing(true);
+        String roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(", "));
+        rolesLayout.add(
+            new Span("Rollen: "),
+            createInfoSpan(roles.isEmpty() ? "Keine Rollen" : roles)
+        );
+
+        userCard.add(userTitle, usernameLayout, authTypeLayout, rolesLayout);
+
+        // Add email if available
+        if (email != null && !email.isEmpty()) {
+            HorizontalLayout emailLayout = new HorizontalLayout();
+            emailLayout.setSpacing(true);
+            emailLayout.add(
+                new Span("E-Mail: "),
+                createInfoSpan(email)
+            );
+            userCard.add(emailLayout);
+        }
+
+        // Add full name if available
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            HorizontalLayout nameLayout = new HorizontalLayout();
+            nameLayout.setSpacing(true);
+            nameLayout.add(
+                new Span("Name: "),
+                createInfoSpan(fullName)
+            );
+            userCard.add(nameLayout);
+        }
+
+        // Add debug info for OAuth2 users
+        if (principal instanceof OAuth2User oauth2User) {
+            Div debugInfo = new Div();
+            debugInfo.getStyle()
+                    .set("margin-top", "1rem")
+                    .set("padding", "0.5rem")
+                    .set("background", "#f9fafb")
+                    .set("border-radius", "4px")
+                    .set("font-size", "0.8rem")
+                    .set("color", "#6b7280");
             
-            Paragraph rolesPara = new Paragraph("Rollen: " + roles);
-            rolesPara.getStyle().set("color", "#059669").set("margin", "0.5rem 0");
+            debugInfo.add(new Span("Debug - Available attributes: " + 
+                oauth2User.getAttributes().keySet().toString()));
+            userCard.add(debugInfo);
+        }
 
-            userInfo.add(userPara, authPara, rolesPara);
+        add(userCard);
+    }
 
-            // Additional OAuth2 info if available
-            // if (auth.getPrincipal() instanceof OAuth2User oauth2User) {
-            //     String email = oauth2User.getAttribute("email");
-            //     if (email != null) {
-            //         Paragraph emailPara = new Paragraph("E-Mail: " + email);
-            //         emailPara.getStyle().set("color", "#6b7280").set("margin", "0.5rem 0");
-            //         userInfo.add(emailPara);
-            //     }
-            // }
-
-            userCard.add(welcomeTitle, userInfo);
-            add(userCard);
-        });
+    private Span createInfoSpan(String text) {
+        Span span = new Span(text);
+        span.getStyle()
+                .set("font-weight", "bold")
+                .set("color", "#059669");
+        return span;
     }
 
     private void createActions() {
-        VerticalLayout actionsCard = new VerticalLayout();
+        Div actionsCard = new Div();
         actionsCard.getStyle()
-            .set("background", "white")
-            .set("padding", "2rem")
-            .set("border-radius", "8px")
-            .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
+                .set("background", "white")
+                .set("padding", "1.5rem")
+                .set("border-radius", "8px")
+                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
 
-        H2 actionsTitle = new H2("Verfügbare Aktionen");
-        actionsTitle.getStyle().set("color", "#1f2937").set("margin-top", "0");
+        H2 actionsTitle = new H2("Aktionen");
+        actionsTitle.getStyle().set("margin-top", "0").set("color", "#374151");
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);
 
-        Button apiTestButton = new Button("API Test", new Icon(VaadinIcon.CONNECT));
+        // API Test Button
+        Button apiTestButton = new Button("API Test");
         apiTestButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         apiTestButton.addClickListener(e -> {
-            getUI().ifPresent(ui -> ui.getPage().open("/api/user/info", "_blank"));
+            getUI().ifPresent(ui -> ui.navigate("api-test"));
         });
 
-        Button userManagementButton = new Button("Benutzerverwaltung", new Icon(VaadinIcon.USERS));
-        userManagementButton.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-        userManagementButton.setEnabled(hasRole("ROLE_ADMIN"));
-        userManagementButton.addClickListener(e -> {
-            // TODO: Navigate to user management view
-            Notification.show("Benutzerverwaltung noch nicht implementiert");
+        // Profile Button
+        Button profileButton = new Button("Profil");
+        profileButton.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+        profileButton.addClickListener(e -> {
+            getUI().ifPresent(ui -> ui.navigate("profile"));
         });
 
-        buttonLayout.add(apiTestButton, userManagementButton);
+        // Logout Button
+        Button logoutButton = new Button("Abmelden");
+        logoutButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        logoutButton.addClickListener(e -> {
+            authenticationContext.logout();
+        });
 
-        // Info section
-        Div infoSection = new Div();
-        infoSection.getStyle()
-            .set("margin-top", "1.5rem")
-            .set("padding", "1rem")
-            .set("background", "#f3f4f6")
-            .set("border-radius", "4px");
-
-        Paragraph infoText = new Paragraph(
-            "Diese Anwendung demonstriert die Dual-Authentifizierung mit Header-basierter " +
-            "Authentifizierung (für AD-Integration) und OAuth2 (Google). " +
-            "Die Header-Authentifizierung wird automatisch verwendet, wenn entsprechende Header gesetzt sind."
-        );
-        infoText.getStyle().set("color", "#6b7280").set("margin", "0");
-
-        infoSection.add(infoText);
-
-        actionsCard.add(actionsTitle, buttonLayout, infoSection);
+        buttonLayout.add(apiTestButton, profileButton, logoutButton);
+        actionsCard.add(actionsTitle, buttonLayout);
         add(actionsCard);
-    }
-
-    // private String getAuthenticationMethod(User auth) {
-    //     if (auth.getPrincipal() instanceof OAuth2User) {
-    //         return "OAuth2 (Google)";
-    //     } else if (auth.getDetails() != null && auth.getDetails().toString().contains("Header")) {
-    //         return "Header Authentication";
-    //     } else {
-    //         return "Standard Authentication";
-    //     }
-    // }
-
-    private boolean hasRole(String role) {
-        Optional<User> userO = authenticationContext.getAuthenticatedUser(User.class);    
-        if (userO.isEmpty()) {
-            return false;
-        }
-        User user = userO.get();
-        var roles = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
-        return roles.contains(role);
-            
-    }
-
-    private void logout() {
-        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-        if (request != null) {
-            try {
-                SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
-                logoutHandler.logout(request.getHttpServletRequest(), null, null);
-                getUI().ifPresent(ui -> ui.getPage().setLocation("/login?logout"));
-            } catch (Exception e) {
-                getUI().ifPresent(ui -> ui.getPage().setLocation("/login"));
-            }
-        }
     }
 }
