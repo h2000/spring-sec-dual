@@ -12,7 +12,7 @@ spring:
 
         provider:
           keycloak:
-            issuer-uri: http://localhost:4444/realms/master
+            issuer-uri: http://localhost:4444/realms/spring-app-realm
             user-name-attribute: preferred_username
   websecurity:
     debug: true

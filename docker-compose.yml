@@ -20,13 +20,9 @@ services:
       - KC_LOG_LEVEL=INFO
       - KC_LOG_CONSOLE_COLOR=true
 
-      # H2 Database (default in dev mode - no additional config needed)
-      - KC_DB=dev-file
-
     command: start-dev --import-realm
     volumes:
       - ./docker/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
-      - keycloak_data:/opt/keycloak/data
 
     # Health check
     healthcheck:
@@ -45,6 +41,3 @@ services:
     depends_on:
       - keycloak
     network_mode: host
-
-volumes:
-  keycloak_data:
