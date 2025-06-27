@@ -1,6 +1,9 @@
 
-package com.example.security;
+package com.example.security.config;
 
+import com.example.security.user.CustomOAuth2UserService;
+import com.example.security.filter.HeaderAuthenticationFilter;
+import com.example.security.filter.SecurityDebugFilter;
 import com.example.security.views.LoginView;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import jakarta.servlet.Filter;

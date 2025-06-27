@@ -1,6 +1,6 @@
 
 // UserDetailsService für Header-Authentifizierung
-package com.example.security;
+package com.example.security.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

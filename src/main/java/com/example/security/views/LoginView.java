@@ -58,21 +58,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
             UI.getCurrent().getPage().setLocation("/oauth2/authorization/keycloak");
         });
 
-        // Azure Login Button
-        Button azureLoginButton = new Button("Login with Azure AD");
-        azureLoginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        azureLoginButton.getStyle()
-                .set("background", "#0078d4")
-                .set("color", "white")
-                .set("padding", "0.75rem 1.5rem")
-                .set("border-radius", "4px")
-                .set("font-weight", "500")
-                .set("margin", "0.25rem 0")
-                .set("width", "100%");
-        
-        azureLoginButton.addClickListener(e -> {
-            UI.getCurrent().getPage().setLocation("/oauth2/authorization/azure");
-        });
 
         Div headerAuthInfo = new Div();
         headerAuthInfo.getStyle()
@@ -85,14 +70,11 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         headerAuthInfo.add("Header-Authentifizierung ist automatisch aktiv, wenn entsprechende Header gesetzt sind.");
 
-        oauthSection.add(keycloakLoginButton, azureLoginButton);
+        oauthSection.add(keycloakLoginButton);
         loginOptions.add(loginTitle, oauthSection, headerAuthInfo);
 
         add(title, loginOptions);
 
-        getStyle()
-                .set("background", "linear-gradient(135deg, #667eea 0%, #764ba2 100%)")
-                .set("min-height", "100vh");
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.example.security;
+package com.example.security.filter;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;

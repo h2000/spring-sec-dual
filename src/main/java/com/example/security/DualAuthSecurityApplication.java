@@ -1,5 +1,8 @@
 package com.example.security;
 
+import com.example.security.config.VaadinSecurityConfig;
+import com.example.security.user.User;
+import com.example.security.user.UserRepository;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.spring.annotation.EnableVaadin;
@@ -21,7 +24,7 @@ import org.springframework.context.annotation.Import;
     description = "Spring Boot Security with Header and OAuth2 Authentication"
 )
 @EnableVaadin
-@Import({VaadinSecurityConfig.class})
+@Import({ VaadinSecurityConfig.class})
 public class DualAuthSecurityApplication implements AppShellConfigurator {
 
     private static final Logger logger = LoggerFactory.getLogger(DualAuthSecurityApplication.class);
@@ -85,12 +88,6 @@ public class DualAuthSecurityApplication implements AppShellConfigurator {
             logger.info("Access the application at: http://localhost:8080");
             logger.info("Login page: http://localhost:8080/login");
             logger.info("Dashboard: http://localhost:8080/dashboard");
-            logger.info("");
-            logger.info("Test Header Authentication:");
-            logger.info("curl -H 'X_AUTH_USER: john.doe' http://localhost:8080/dashboard");
-            logger.info("");
-            logger.info("Test API:");
-            logger.info("curl -H 'X_AUTH_USER: admin' http://localhost:8080/api/user/info");
         };
     }
 }

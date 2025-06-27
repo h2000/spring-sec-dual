@@ -1,4 +1,4 @@
-package com.example.security;
+package com.example.security.user;
 
 import java.time.LocalDateTime;
 import java.util.Set;

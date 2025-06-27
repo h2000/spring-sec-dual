@@ -1,6 +1,7 @@
 
-package com.example.security;
+package com.example.security.filter;
 
+import com.example.security.user.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
