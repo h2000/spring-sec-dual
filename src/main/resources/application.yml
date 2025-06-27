@@ -12,12 +12,10 @@ spring:
 
         provider:
           keycloak:
-            authorization-uri: http://localhost:4444/realms/master/protocol/openid-connect/auth
-            token-uri: http://localhost:4444/realms/master/protocol/openid-connect/token
-            user-info-uri: http://localhost:4444/realms/master/protocol/openid-connect/userinfo
-            jwk-set-uri: http://localhost:4444/realms/master/protocol/openid-connect/certs
+            issuer-uri: http://localhost:4444/realms/master
             user-name-attribute: preferred_username
-
+  websecurity:
+    debug: true
 
 logging:
   level:
